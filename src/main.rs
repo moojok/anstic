@@ -2,7 +2,7 @@ use anstic::interpreter::Compile;
 use anstic::interpreter::Intrepreter;
 use std::io;
 
-fn main() -> io::Result<()>{
+fn main() -> io::Result<()> {
     println!("Write an expression to obfuscate it.");
     let mut user_input = String::new();
     let stdin = io::stdin();

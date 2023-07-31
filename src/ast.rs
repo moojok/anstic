@@ -2,7 +2,7 @@ use crate::parser::Rule;
 
 use std::{fmt, write};
 #[derive(Debug, Copy, Clone)]
-pub enum Operator{
+pub enum Operator {
     And,
     Or,
     Xor,
@@ -12,13 +12,13 @@ pub enum Operator{
 }
 
 #[derive(Debug, Copy, Clone)]
-pub enum UnaryOperator{
+pub enum UnaryOperator {
     Minus,
     Not,
 }
 
 #[derive(Debug, Clone)]
-pub enum Node{
+pub enum Node {
     Immediate(i32),
     Cont(char, i32),
     UnaryExpr {
@@ -45,9 +45,9 @@ impl fmt::Display for Operator {
     }
 }
 
-impl fmt::Display for UnaryOperator{
+impl fmt::Display for UnaryOperator {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match &self{
+        match &self {
             UnaryOperator::Minus => write!(f, "-"),
             UnaryOperator::Not => write!(f, "~"),
         }
@@ -66,14 +66,14 @@ impl fmt::Display for Node {
 }
 
 pub fn build_ast_from_expr(pair: pest::iterators::Pair<Rule>) -> Node {
-    match pair.as_rule(){
+    match pair.as_rule() {
         Rule::Expr => build_ast_from_expr(pair.into_inner().next().unwrap()),
         Rule::UnaryExpr => {
             let mut pair = pair.into_inner();
             let op = pair.next().unwrap();
             let child = pair.next().unwrap();
             let child = build_ast_from_term(child);
-            parse_unary_expr(op, child)            
+            parse_unary_expr(op, child)
         }
         Rule::BinaryExpr => {
             let mut pair = pair.into_inner();
@@ -103,19 +103,19 @@ fn build_ast_from_term(pair: pest::iterators::Pair<Rule>) -> Node {
     match pair.as_rule() {
         Rule::SET => {
             let istr = pair.as_str();
-            let (sign, _istr) = match &istr[..1]{
+            let (sign, _istr) = match &istr[..1] {
                 "-" => (-1, &istr[1..]),
                 "~" => (1, &istr[1..]),
                 _ => (1, istr),
             };
-            // HACK: for now we use the value of the char as the number for node 
+            // HACK: for now we use the value of the char as the number for node
             let status_to_set: u32 = _istr.chars().nth(0).unwrap() as u32;
             let set_name: char = _istr.chars().nth(0).unwrap();
-            Node::Cont(set_name, sign*(status_to_set as i32))
-        },
+            Node::Cont(set_name, sign * (status_to_set as i32))
+        }
         Rule::Int => {
             let istr = pair.as_str();
-            let (sign, istr) = match &istr[..1]{
+            let (sign, istr) = match &istr[..1] {
                 "-" => (-1, &istr[1..]),
                 "~" => (-1, &istr[1..]),
                 _ => (1, istr),
@@ -128,8 +128,8 @@ fn build_ast_from_term(pair: pest::iterators::Pair<Rule>) -> Node {
     }
 }
 
-fn parse_binary_expr(pair: pest::iterators::Pair<Rule>, lhs: Node, rhs: Node) -> Node{
-     Node::BinaryExpr {
+fn parse_binary_expr(pair: pest::iterators::Pair<Rule>, lhs: Node, rhs: Node) -> Node {
+    Node::BinaryExpr {
         op: match pair.as_str() {
             "&" => Operator::And,
             "|" => Operator::Or,
@@ -144,11 +144,13 @@ fn parse_binary_expr(pair: pest::iterators::Pair<Rule>, lhs: Node, rhs: Node) ->
     }
 }
 
-fn parse_unary_expr(pair: pest::iterators::Pair<Rule>, child: Node) -> Node{
-    Node::UnaryExpr { op: 
-        match pair.as_str(){
+fn parse_unary_expr(pair: pest::iterators::Pair<Rule>, child: Node) -> Node {
+    Node::UnaryExpr {
+        op: match pair.as_str() {
             "-" => UnaryOperator::Minus,
             "~" => UnaryOperator::Not,
             _ => unreachable!(),
-    }, child: Box::new(child)}
+        },
+        child: Box::new(child),
+    }
 }
